@@ -16,14 +16,15 @@ func InitRegistry() error {
 			}
 
 			_, err := os.Stat(kubeconfig())
-			if err != nil {
+			if err == nil {
 				if !os.IsNotExist(err) {
-					return fmt.Errorf("read kubeconfig failed: %v", err)
+					return fmt.Errorf("read current kubeconfig failed ~/.kube/config : %v", err)
 				}
-			}
-			err = os.Rename(kubeconfig(), filepath.Join(registryDir(), "default"))
-			if err != nil {
-				return fmt.Errorf("import kubeconfig failed: %v", err)
+			} else {
+				err = os.Rename(kubeconfig(), filepath.Join(registryDir(), "default"))
+				if err != nil {
+					return fmt.Errorf("import kubeconfig failed: %v", err)
+				}
 			}
 		}
 	}
