@@ -64,9 +64,9 @@ to import a kubeconfig from ssh, remote machine must have kubectl configured.
 			if errors.Is(err, kubeconfig.ErrConfAlreadyExists) {
 				fmt.Println("config already exists!")
 			} else {
-				fmt.Println("failed to import:", err)
-				os.Exit(1)
+				fmt.Println("failed to import:", err.Error())
 			}
+			os.Exit(1)
 
 		} else {
 			fmt.Println("imported", color.GreenString(name), "!")
@@ -87,6 +87,7 @@ to import a kubeconfig from ssh, remote machine must have kubectl configured.
 func init() {
 	rootCmd.AddCommand(importCmd)
 
+	importCmd.Flags().BoolP("force", "f", false, "force import, override current existing configuration")
 	importCmd.Flags().Bool("use", false, "use the imported configuration")
 
 	// Here you will define your flags and configuration settings.

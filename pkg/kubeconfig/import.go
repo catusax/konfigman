@@ -13,10 +13,11 @@ import (
 )
 
 type importOptions struct {
-	Path string
-	SSH  string
-	Host string
-	Name string
+	Path  string
+	SSH   string
+	Host  string
+	Name  string
+	Force bool
 }
 
 type ImportOption func(i *importOptions)
@@ -44,6 +45,12 @@ func ImportOptionWithSSH(ssh string) ImportOption {
 func ImportOptionWithPath(path string) ImportOption {
 	return func(i *importOptions) {
 		i.Path = path
+	}
+}
+
+func ImportOptionWithForce(force bool) ImportOption {
+	return func(i *importOptions) {
+		i.Force = force
 	}
 }
 
@@ -93,7 +100,7 @@ func ImportConfig(options ...ImportOption) (err error) {
 	}
 
 	_, err = os.Stat(filepath.Join(registryDir(), option.Name))
-	if !os.IsNotExist(err) {
+	if !os.IsNotExist(err) && !option.Force {
 		return fmt.Errorf("%w,  %s", ErrConfAlreadyExists, option.Name)
 	}
 
