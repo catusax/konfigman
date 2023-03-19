@@ -14,10 +14,17 @@ import (
 
 type importOptions struct {
 	Path  string
-	SSH   string
+	SSH   SSHConfig
 	Host  string
 	Name  string
 	Force bool
+}
+
+type SSHConfig struct {
+	URL          string
+	IdentityFile string
+	ConfigFile   string
+	JumpHost     string
 }
 
 type ImportOption func(i *importOptions)
@@ -36,7 +43,7 @@ func ImportOptionWithName(name string) ImportOption {
 	}
 }
 
-func ImportOptionWithSSH(ssh string) ImportOption {
+func ImportOptionWithSSH(ssh SSHConfig) ImportOption {
 	return func(i *importOptions) {
 		i.SSH = ssh
 	}
@@ -61,7 +68,7 @@ func ImportConfig(options ...ImportOption) (err error) {
 	}
 
 	var config *clientcmdapi.Config
-	if option.SSH == "" {
+	if option.SSH.URL == "" {
 		config, err = clientcmd.LoadFromFile(option.Path)
 		if err != nil {
 			return err
@@ -75,8 +82,8 @@ func ImportConfig(options ...ImportOption) (err error) {
 
 	for i := range config.Clusters {
 
-		if option.SSH != "" {
-			url, _ := url.Parse(option.SSH)
+		if option.SSH.URL != "" {
+			url, _ := url.Parse(option.SSH.URL)
 
 			serverurl, err := url.Parse(config.Clusters[i].Server)
 			if err != nil {
@@ -112,14 +119,29 @@ func ImportConfig(options ...ImportOption) (err error) {
 	return nil
 }
 
-func loadSSHConfig(ssh string) (*clientcmdapi.Config, error) {
-	command := exec.Command("ssh", ssh, "kubectl config view --raw")
+func loadSSHConfig(ssh SSHConfig) (*clientcmdapi.Config, error) {
+	params := append(buildSSHParams(ssh), ssh.URL, "kubectl config view --raw")
+	command := exec.Command("ssh", params...)
 	out, err := command.Output()
 	if err != nil {
 		return nil, fmt.Errorf("read remote config from ssh: %v", err)
 	}
 
 	return clientcmd.Load(out)
+}
+
+func buildSSHParams(ssh SSHConfig) (res []string) {
+	if ssh.ConfigFile != "" {
+		res = append(res, "-F", ssh.ConfigFile)
+	}
+	if ssh.IdentityFile != "" {
+		res = append(res, "-i", ssh.IdentityFile)
+	}
+	if ssh.JumpHost != "" {
+		res = append(res, "-J", ssh.JumpHost)
+	}
+
+	return
 }
 
 func replaceHostName(hostName string, cluster *clientcmdapi.Cluster) error {
