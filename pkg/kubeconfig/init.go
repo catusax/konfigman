@@ -16,7 +16,7 @@ func InitRegistry() error {
 			}
 
 			_, err := os.Stat(kubeconfig())
-			if err == nil {
+			if err != nil {
 				if !os.IsNotExist(err) {
 					return fmt.Errorf("read current kubeconfig failed ~/.kube/config : %v", err)
 				}
