@@ -25,6 +25,7 @@ type SSHConfig struct {
 	IdentityFile string
 	ConfigFile   string
 	JumpHost     string
+	Sudo         bool
 }
 
 type ImportOption func(i *importOptions)
@@ -120,7 +121,13 @@ func ImportConfig(options ...ImportOption) (err error) {
 }
 
 func loadSSHConfig(ssh SSHConfig) (*clientcmdapi.Config, error) {
-	params := append(buildSSHParams(ssh), ssh.URL, "kubectl config view --raw")
+	params := append(buildSSHParams(ssh), ssh.URL)
+	if ssh.Sudo {
+		params = append(params, "sudo kubectl config view --raw")
+	} else {
+		params = append(params, "kubectl config view --raw")
+	}
+
 	command := exec.Command("ssh", params...)
 	out, err := command.Output()
 	if err != nil {

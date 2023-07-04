@@ -76,7 +76,7 @@ to import a kubeconfig from ssh, remote machine must have kubectl configured.
 			fmt.Println("imported", color.GreenString(name), "!")
 		}
 
-		if v, err := cmd.Flags().GetBool("use"); err == nil && v {
+		if importFlags.Use {
 			err := kubeconfig.UseConfig(name)
 			if err != nil {
 				fmt.Println(err)
@@ -101,6 +101,7 @@ func init() {
 	importCmd.Flags().StringVar(&importFlags.SSHConfig.IdentityFile, "ssh-identity-file", "", "Selects a file from which the identity (private key) for public key authentication is read. (ssh -i)")
 	importCmd.Flags().StringVar(&importFlags.SSHConfig.JumpHost, "ssh-jump", "", "Connect to the target host by first making a ssh connection to the jump host (ssh -J)")
 
+	importCmd.Flags().BoolVarP(&importFlags.SSHConfig.Sudo, "sudo", "", false, "use sudo to get config")
 	importCmd.Flags().BoolVarP(&importFlags.Force, "force", "f", false, "force import, override current existing configuration")
 	importCmd.Flags().BoolVar(&importFlags.Use, "use", false, "use the imported configuration")
 
