@@ -19,8 +19,9 @@ import (
 var importCmd = &cobra.Command{
 	Use:   "import file|ssh-url [name]",
 	Short: "Import a kubeconfig file",
-	Long: `You can import a kubeconfig from file or ssh
+	Long: `Import a kubeconfig file
 
+You can import a kubeconfig from file or ssh
 to import a kubeconfig from ssh, remote machine must have kubectl configured.
 	`,
 	Example: "kubectl kubeconfig import /path/to/kubeconfig",
@@ -77,7 +78,7 @@ to import a kubeconfig from ssh, remote machine must have kubectl configured.
 		}
 
 		if importFlags.Use {
-			err := kubeconfig.UseConfig(name)
+			err := kubeconfig.UseConfig(name, useFlags)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
@@ -104,6 +105,8 @@ func init() {
 	importCmd.Flags().BoolVarP(&importFlags.SSHConfig.Sudo, "sudo", "", false, "use sudo to get config")
 	importCmd.Flags().BoolVarP(&importFlags.Force, "force", "f", false, "force import, override current existing configuration")
 	importCmd.Flags().BoolVar(&importFlags.Use, "use", false, "use the imported configuration")
+
+	loadUseFlags(importCmd)
 
 	// Here you will define your flags and configuration settings.
 

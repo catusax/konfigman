@@ -16,8 +16,10 @@ import (
 // useCmd represents the use command
 var useCmd = &cobra.Command{
 	Use:   "use",
-	Short: "Use a configuration as current configuration",
-	Long:  ``,
+	Short: "Use a configuration",
+	Long: `Use a configuration
+
+soft link specific configuration to ~/.kube/config`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var config string
 		if len(args) == 0 {
@@ -31,7 +33,7 @@ var useCmd = &cobra.Command{
 		} else {
 			config = args[0]
 		}
-		err := kubeconfig.UseConfig(config)
+		err := kubeconfig.UseConfig(config, useFlags)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -40,8 +42,18 @@ var useCmd = &cobra.Command{
 	},
 }
 
+var useFlags kubeconfig.UseOptions
+
+func loadUseFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&useFlags.Context, "context", "c", "", "context entry in kubeconfig")
+	cmd.Flags().StringVarP(&useFlags.Namespace, "namespace", "n", "", "namespace for the context entry in kubeconfig")
+	cmd.Flags().StringVar(&useFlags.Cluster, "cluster", "", "cluster for the context entry in kubeconfig")
+	cmd.Flags().StringVarP(&useFlags.User, "user", "u", "", "user for the context entry in kubeconfig")
+}
+
 func init() {
 	rootCmd.AddCommand(useCmd)
+	loadUseFlags(useCmd)
 
 	// Here you will define your flags and configuration settings.
 
